@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <thread>
+#include <boost/algorithm/string.hpp>
 
 #include "connection_manager.h"
 
@@ -25,6 +26,20 @@ void Connection::stop()
 
 Connection::~Connection()
 {
+}
+
+namespace /*missing code stubs*/ {
+    auto split(std::string_view input, char delim) {
+        std::vector<std::string_view> result;
+        boost::algorithm::split(result, input,
+                                boost::algorithm::is_from_range(delim, delim));
+        return result;
+    }
+
+    std::string getExecutionJsons()   { return ""; }
+    std::string getOrdersAsJsons()    { return ""; }
+    std::string getPositionsAsJsons() { return ""; }
+    std::string createSyncDoneJson()  { return ""; }
 }
 
 void Connection::do_read()
@@ -60,7 +75,7 @@ void Connection::do_write(const std::string& write_buffer)
   outgoing_buffer_ = write_buffer;
 
   auto self(shared_from_this());
-  boost::asio::async_write(socket_, boost::asio::buffer(outgoing_buffer_, outgoing_buffer_.size()), [this, self](boost::system::error_code ec, std::size_t transfer_size) {
+  boost::asio::async_write(socket_, boost::asio::buffer(outgoing_buffer_, outgoing_buffer_.size()), [/*this,*/ self](boost::system::error_code ec, std::size_t /*transfer_size*/) {
         if (!ec) {
            /// everything is fine.
         } else {
