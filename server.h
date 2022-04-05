@@ -5,40 +5,27 @@
 #include "connection.h"
 #include "connection_manager.h"
 
-class Server
-{
-public:
-  Server(const Server&) = delete;
-  Server& operator=(const Server&) = delete;
+class Server {
+  public:
+    Server(const Server&) = delete;
+    Server& operator=(const Server&) = delete;
 
-  /// Construct the server to listen on the specified TCP address and port, and
-  /// serve up files from the given directory.
-  explicit Server(const std::string& address, const std::string& port);
+    /// Construct the server to listen on the specified TCP address and port,
+    /// and serve up files from the given directory.
+    explicit Server(const std::string& address, const std::string& port);
 
-  /// Run the server's io_service loop.
-  void run();
+    /// Run the server's io_service loop.
+    void run();
 
-  void deliver(const std::string& buffer);
+    bool deliver(const std::string& buffer);
 
-private:
-  /// Perform an asynchronous accept operation.
-  void do_accept();
+  private:
+    void do_accept();
+    void do_await_signal();
 
-  /// Wait for a request to stop the server.
-  void do_await_stop();
-
-  /// The io_service used to perform asynchronous operations.
-  boost::asio::io_service io_service_;
-
-  /// The signal_set is used to register for process termination notifications.
-  boost::asio::signal_set signals_;
-
-  /// Acceptor used to listen for incoming connections.
-  boost::asio::ip::tcp::acceptor acceptor_;
-
-  /// The connection manager which owns all live connections.
-  ConnectionManager connection_manager_;
-
-  /// The *NEXT* socket to be accepted.
-  boost::asio::ip::tcp::socket socket_;
+    boost::asio::io_context      io_context_;
+    boost::asio::any_io_executor strand_{io_context_.get_executor()};
+    boost::asio::signal_set      signals_{strand_};
+    tcp::acceptor                acceptor_{strand_};
+    ConnectionManager            connection_manager_;
 };
