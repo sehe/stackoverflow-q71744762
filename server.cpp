@@ -44,8 +44,7 @@ void Server::do_accept() {
         make_strand(io_context_), [this](error_code ec, tcp::socket sock) {
             if (!ec) {
                 connection_manager_.register_and_start(
-                    std::make_shared<Connection>(std::move(sock),
-                                                 connection_manager_));
+                    std::make_shared<Connection>(std::move(sock)));
                 do_accept();
             }
         });

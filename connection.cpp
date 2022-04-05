@@ -9,9 +9,8 @@
 #include "connection_manager.h"
 using boost::system::error_code;
 
-Connection::Connection(tcp::socket socket, ConnectionManager& manager)
-    : socket_(std::move(socket))
-    , connection_manager_(manager) {}
+Connection::Connection(tcp::socket socket)
+    : socket_(std::move(socket)) {}
 
 void Connection::start() { // always assumed on the strand (since connection
                            // just constructed)
@@ -46,11 +45,11 @@ namespace /*missing code stubs*/ {
 void Connection::do_read() {
     auto self(shared_from_this());
     socket_.async_read_some(
-        boost::asio::buffer(buffer_),
+        boost::asio::buffer(incoming_),
         [this, self](error_code ec, size_t bytes_transferred) {
             if (!ec) {
                 std::string buff_str =
-                    std::string(buffer_.data(), bytes_transferred);
+                    std::string(incoming_.data(), bytes_transferred);
                 const auto& tokenized_buffer = split(buff_str, ' ');
 
                 if (!tokenized_buffer.empty() &&
@@ -75,7 +74,6 @@ void Connection::do_read() {
                 do_read();
             } else {
                 std::cerr << "do_read terminating: " << ec.message() << std::endl;
-                connection_manager_.stop(shared_from_this());
             }
         });
 }
@@ -110,11 +108,6 @@ void Connection::do_write_loop() {
                 do_write_loop();
             } else {
                 socket_.cancel();
-
-                // This would ideally be enough to free the connection, but
-                // since `ConnectionManager` doesn't use `weak_ptr` you need to
-                // force the issue using kind of an "umbellical cord reflux":
-                connection_manager_.stop(self);
             }
         });
 }

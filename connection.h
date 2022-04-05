@@ -17,7 +17,7 @@ class Connection : public std::enable_shared_from_this<Connection> {
     Connection& operator=(const Connection&) = delete;
 
     /// Construct a connection with the given socket.
-    explicit Connection(tcp::socket socket, ConnectionManager& manager);
+    explicit Connection(tcp::socket socket);
 
     void start();
     void stop();
@@ -31,15 +31,8 @@ class Connection : public std::enable_shared_from_this<Connection> {
     /// Perform an asynchronous read operation.
     void do_read();
 
-    /// Socket for the connection.
-    tcp::socket socket_;
-
-    /// The manager for this connection.
-    ConnectionManager& connection_manager_;
-
-    /// Buffer for incoming data.
-    std::array<char, 8192> buffer_;
-
+    tcp::socket             socket_;
+    std::array<char, 8192>  incoming_;
     std::deque<std::string> outgoing_;
 };
 
